@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание занятий</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .legend {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        .legend h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .schedule-container {
+            width: 100%;
+            max-width: 1300px;
+            overflow-x: auto;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            background-color: white;
+            padding: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        thead {
+            background: linear-gradient(90deg, #2c3e50, #4a6491);
+            color: white;
+        }
+        
+        th {
+            padding: 20px 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        
+        th:first-child {
+            border-radius: 12px 0 0 0;
+        }
+        
+        th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+        
+        th i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .day-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .day-name {
+            font-size: 1.3rem;
+        }
+        
+        .day-date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+        
+        td {
+            padding: 18px 12px;
+            text-align: center;
+            border: 1px solid #e1e8ed;
+            transition: all 0.2s ease;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #f0f7ff;
+        }
+        
+        td:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1;
+            position: relative;
+        }
+        
+        .time-column {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            width: 100px;
+            background-color: #f1f8ff;
+            border-right: 2px solid #c3cfe2;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .pair-number {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            width: 80px;
+            background-color: #f1f8ff;
+            border-right: 2px solid #c3cfe2;
+        }
+        
+        .pair-time {
+            color: #2980b9;
+            font-weight: 600;
+            margin-top: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .subject {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .details {
+            font-size: 0.9rem;
+            color: #5d6d7e;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .cabinet {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background-color: #e8f4fc;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #2980b9;
+            margin-top: 5px;
+        }
+        
+        .week-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        
+        .even {
+            background-color: #ffeaa7;
+            color: #e17055;
+        }
+        
+        .odd {
+            background-color: #a29bfe;
+            color: white;
+        }
+        
+        /* Цвета для разных предметов */
+        .philosophy {
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .management {
+            border-left: 5px solid #3498db;
+        }
+        
+        .english {
+            border-left: 5px solid #9b59b6;
+        }
+        
+        .popd {
+            border-left: 5px solid #2ecc71;
+        }
+        
+        .mdk {
+            border-left: 5px solid #f39c12;
+        }
+        
+        .economics {
+            border-left: 5px solid #1abc9c;
+        }
+        
+        .sport {
+            border-left: 5px solid #e84393;
+        }
+        
+        .empty {
+            background-color: #f8f9fa;
+            color: #bdc3c7;
+            font-style: italic;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        .footer i {
+            color: #e74c3c;
+            margin: 0 5px;
+        }
+        
+        .time-legend {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .time-legend h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .time-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .time-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .time-pair {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .time-range {
+            font-family: 'Courier New', monospace;
+            color: #2980b9;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+            }
+            
+            .legend {
+                padding: 15px;
+            }
+            
+            .time-column {
+                font-size: 0.85rem;
+                width: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-calendar-alt"></i> Расписание занятий</h1>
+        <p>Расписание с указанием кабинетов и четности недель. Цветовая маркировка предметов для удобства.</p>
+    </div>
+    
+    <div class="legend">
+        <h3><i class="fas fa-key"></i> Легенда расписания</h3>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #e74c3c;"></div>
+                <span>Философия</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #3498db;"></div>
+                <span>Менеджмент</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #9b59b6;"></div>
+                <span>Английский язык</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #2ecc71;"></div>
+                <span>ПОПД</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #f39c12;"></div>
+                <span>МДК</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #1abc9c;"></div>
+                <span>Экономика</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #e84393;"></div>
+                <span>Физкультура</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box even"></div>
+                <span>Четная неделя</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box odd"></div>
+                <span>Нечетная неделя</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="schedule-container">
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Пары / Время</th>
+                    <th>
+                        <div class="day-header">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="day-name">Понедельник</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="day-header">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="day-name">Вторник</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="day-header">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="day-name">Среда</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="day-header">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="day-name">Четверг</span>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="day-header">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="day-name">Пятница</span>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="pair-number">1 Пара</td>
+                    <td class="time-column">08:00-09:35</td>
+                    <td class="empty">-</td>
+                    <td class="philosophy">
+                        <div class="subject">Философия</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 5
+                            </div>
+                        </div>
+                    </td>
+                    <td class="empty">-</td>
+                    <td class="management">
+                        <div class="subject">Менеджмент</div>
+                        <div class="details">
+                            <div class="week-type even">Четная неделя</div>
+                            <div class="week-type odd">Нечетная: ПОПД</div>
+                        </div>
+                    </td>
+                    <td class="management">
+                        <div class="subject">Менеджмент</div>
+                        <div class="details">
+                            <div class="week-type even">Кабинет 12</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pair-number">2 Пара</td>
+                    <td class="time-column">09:45-11:20</td>
+                    <td class="economics">
+                        <div class="subject">Экономика</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 36
+                            </div>
+                        </div>
+                    </td>
+                    <td class="philosophy">
+                        <div class="subject">Философия</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 5
+                            </div>
+                        </div>
+                    </td>
+                    <td class="empty">-</td>
+                    <td class="english">
+                        <div class="subject">Английский язык</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 13
+                            </div>
+                        </div>
+                    </td>
+                    <td class="popd">
+                        <div class="subject">ПОПД</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 25
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pair-number">3 Пара</td>
+                    <td class="time-column">11:40-13:15</td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.01</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 41
+                            </div>
+                        </div>
+                    </td>
+                    <td class="management">
+                        <div class="subject">Менеджмент</div>
+                        <div class="details">
+                            <div class="week-type even">Читальный  зал</div>
+                        </div>
+                    </td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.02</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 41
+                            </div>
+                        </div>
+                    </td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.01</div>
+                        <div class="details">
+                            <div class="week-type odd">41 кабинет</div>
+                        </div>
+                    </td>
+                    <td class="economics">
+                        <div class="subject">Экономика</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 36
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pair-number">4 Пара</td>
+                    <td class="time-column">13:45-15:20</td>
+                    <td class="philosophy">
+                        <div class="subject">Философия</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 5
+                            </div>
+                        </div>
+                    </td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.01</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 41
+                            </div>
+                        </div>
+                    </td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.01</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 41
+                            </div>
+                        </div>
+                    </td>
+                    <td class="sport">
+                        <div class="subject">Физкультура</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-running"></i> Спортзал
+                            </div>
+                        </div>
+                    </td>
+                    <td class="empty">-</td>
+                </tr>
+                <tr>
+                    <td class="pair-number">5 Пара</td>
+                    <td class="time-column">15:30-17:05</td>
+                    <td class="economics">
+                        <div class="subject">Экономика</div>
+                          <div class="details">
+                            <div class="week-type even">Четная неделя</div>
+                        </div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 36
+                            </div>
+                        </div>
+                        <div class="mdk" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                            <div class="subject">МДК 07.01</div>
+                            <div class="details">
+                                <div class="week-type odd">Нечетная неделя</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="mdk">
+                        <div class="subject">МДК 07.02</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 41
+                            </div>
+                        </div>
+                    </td>
+                    <td class="popd">
+                        <div class="subject">ПОПД</div>
+                        <div class="details">
+                            <div class="cabinet">
+                                <i class="fas fa-door-closed"></i> Кабинет: 25
+                            </div>
+                        </div>
+                    </td>
+                    <td class="empty">-</td>
+                    <td class="empty">-</td>
+                </tr>
+                <tr>
+                    <td class="pair-number">6 Пара</td>
+                    <td class="time-column">17:25-19:00</td>
+                    <td class="empty">-</td>
+                    <td class="empty">-</td>
+                    <td class="empty">-</td>
+                    <td class="empty">-</td>
+                    <td class="empty">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="time-legend">
+        <h4><i class="fas fa-clock"></i> Расписание звонков</h4>
+        <div class="time-list">
+            <div class="time-item">
+                <span class="time-pair">1 пара:</span>
+                <span class="time-range">08:00 - 09:35</span>
+            </div>
+            <div class="time-item">
+                <span class="time-pair">2 пара:</span>
+                <span class="time-range">09:45 - 11:20</span>
+            </div>
+            <div class="time-item">
+                <span class="time-pair">3 пара:</span>
+                <span class="time-range">11:40 - 13:15</span>
+            </div>
+            <div class="time-item">
+                <span class="time-pair">4 пара:</span>
+                <span class="time-range">13:45 - 15:20</span>
+            </div>
+            <div class="time-item">
+                <span class="time-pair">5 пара:</span>
+                <span class="time-range">15:30 - 17:05</span>
+            </div>
+            <div class="time-item">
+                <span class="time-pair">6 пара:</span>
+                <span class="time-range">17:25 - 19:00</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p><i class="fas fa-heart"></i> Удачи в учебе! <i class="fas fa-heart"></i></p>
+        <p>Расписание составлено на основе предоставленных данных</p>
+    </div>
+
+    <script>
+        // Добавляем анимацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Подсветка сегодняшнего дня
+            const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
+            const today = new Date().getDay();
+            // Воскресенье = 0, Понедельник = 1, ..., Пятница = 5
+            if (today >= 1 && today <= 5) {
+                const todayIndex = today + 1; // +1 потому что добавили столбец со временем
+                const headers = document.querySelectorAll('th');
+                if (headers[todayIndex]) {
+                    headers[todayIndex].style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+                }
+            }
+            
+            // Подсветка текущей пары по времени
+            function highlightCurrentPair() {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const timeRanges = [
+                    { start: 8*60, end: 9*60+35 },   // 08:00-09:35
+                    { start: 9*60+45, end: 11*60+20 }, // 09:45-11:20
+                    { start: 11*60+40, end: 13*60+15 }, // 11:40-13:15
+                    { start: 13*60+45, end: 15*60+20 }, // 13:45-15:20
+                    { start: 15*60+30, end: 17*60+5 },  // 15:30-17:05
+                    { start: 17*60+25, end: 19*60 }     // 17:25-19:00
+                ];
+                
+                for (let i = 0; i < timeRanges.length; i++) {
+                    if (currentTime >= timeRanges[i].start && currentTime <= timeRanges[i].end) {
+                        const rows = document.querySelectorAll('tbody tr');
+                        if (rows[i]) {
+                            rows[i].style.backgroundColor = '#e8f4fc';
+                            rows[i].style.boxShadow = '0 4px 12px rgba(41, 128, 185, 0.2)';
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // Запускаем подсветку текущей пары
+            highlightCurrentPair();
+            // Обновляем каждую минуту
+            setInterval(highlightCurrentPair, 60000);
+        });
+    </script>
+</body>
+</html>
